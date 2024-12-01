@@ -3,7 +3,12 @@ name = "pulldown-kdl"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
+[workspace]
+members = ["emitter"]
+
+[features]
+default = []
+debug = []
 
 [dev-dependencies]
 assert_matches = "1.5.0"

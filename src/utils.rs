@@ -1,6 +1,6 @@
 use std::ops::{Index, Range};
 
-use crate::{ParseError, ParseErrorCause};
+use crate::ParseErrorCause;
 
 pub(crate) fn first_char(seq: &[u8]) -> Option<char> {
     let len = utf8_byte_len(*seq.get(0)?) as usize;
@@ -45,14 +45,6 @@ pub(crate) trait Buffer<'a> {
         Some(c)
     }
 
-    fn error(&self, cause: ParseErrorCause) -> ParseError {
-        ParseError {
-            at: self.end(),
-            cause,
-            end: None,
-        }
-    }
-
     fn sub_accumulator(&self, offset: usize) -> Acc<'a> {
         Acc {
             base: &self.base()[(self.end() + offset)..],
@@ -65,11 +57,9 @@ pub(crate) trait Buffer<'a> {
         self.advance_bytes(range.end);
     }
 
-    fn expect_sequence(&self, seq: &'static str) -> Result<Range<usize>, ParseError> {
+    fn expect_sequence(&self, seq: &'static str) -> Result<Range<usize>, ParseErrorCause> {
         if !self.remaining_text().starts_with(seq) {
-            return Err(self
-                .error(ParseErrorCause::ExpectedSequence { sequence: seq })
-                .with_length(seq.len()));
+            return Err(ParseErrorCause::ExpectedSequence { sequence: seq });
         }
         Ok(0..seq.len())
     }
@@ -109,23 +99,15 @@ pub(crate) trait Buffer<'a> {
 }
 
 pub(crate) trait OptionExt<'text, T>: Sized {
-    fn ok_or_cause(
-        self,
-        buffer: &dyn Buffer<'text>,
-        cause: ParseErrorCause,
-    ) -> Result<T, ParseError>;
-    fn ok_or_eof(self, buffer: &dyn Buffer<'text>) -> Result<T, ParseError> {
-        self.ok_or_cause(buffer, ParseErrorCause::NeedsMoreData)
+    fn ok_or_cause(self, cause: ParseErrorCause) -> Result<T, ParseErrorCause>;
+    fn ok_or_eof(self) -> Result<T, ParseErrorCause> {
+        self.ok_or_cause(ParseErrorCause::NeedsMoreData)
     }
 }
 
 impl<'text, T> OptionExt<'text, T> for Option<T> {
-    fn ok_or_cause(
-        self,
-        buffer: &dyn Buffer<'text>,
-        cause: ParseErrorCause,
-    ) -> Result<T, ParseError> {
-        self.ok_or_else(|| buffer.error(cause))
+    fn ok_or_cause(self, cause: ParseErrorCause) -> Result<T, ParseErrorCause> {
+        self.ok_or_else(|| cause)
     }
 }
 

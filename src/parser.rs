@@ -7,7 +7,7 @@ pub(crate) trait Parse<'text>: Buffer<'text> + ParseString<'text> {
     }
 
     fn expect_value(&self) -> ResultItem<KdlValue<'text>> {
-        self.value().ok_or_cause(self.buffer(), ExpectedValue)
+        self.value().ok_or_cause(ExpectedValue)
     }
 }
 

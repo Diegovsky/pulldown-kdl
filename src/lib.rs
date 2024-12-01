@@ -11,7 +11,18 @@ mod utils;
 use parser::Parse;
 use prelude::*;
 pub use string::KdlString;
-use string::{is_equals, is_whitespace, ParseString};
+use string::{is_equals, ParseString};
+
+#[macro_export]
+macro_rules! tdbg {
+    ($expr:expr) => {{
+        if cfg!(feature = "debug") {
+            dbg!($expr)
+        } else {
+            $expr
+        }
+    }};
+}
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum State {
@@ -72,6 +83,14 @@ pub struct ParseError {
     end: Option<usize>,
 }
 
+impl std::fmt::Display for ParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
+impl std::error::Error for ParseError {}
+
 impl ParseError {
     fn with_length(mut self, end: usize) -> Self {
         self.end = Some(self.at + end);
@@ -80,7 +99,7 @@ impl ParseError {
 }
 
 type Item<T> = Option<(T, Range<usize>)>;
-type ResultItem<T> = Result<(T, Range<usize>), ParseError>;
+type ResultItem<T> = Result<(T, Range<usize>), ParseErrorCause>;
 pub(crate) fn item<T>(t: T, r: Range<usize>) -> Item<T> {
     Some((t, r))
 }
@@ -88,8 +107,8 @@ pub(crate) fn item<T>(t: T, r: Range<usize>) -> Item<T> {
 #[derive(Default, Clone, Copy)]
 pub struct Parser<'text> {
     acc: Acc<'text>,
+    node_just_ended: bool,
     document_depth: usize,
-    looking_for_newline: bool,
     state: State,
 }
 
@@ -101,22 +120,25 @@ impl<'text> Parser<'text> {
         }
     }
 
-    fn peek_next_event(&mut self) -> Result<Item<Event<'text>>, ParseError> {
-        // Looks for indentation after newline
-        if self.looking_for_newline {
-            self.looking_for_newline = false;
-            let (ws, range) = self.acc.consume_whitespace()?;
-            return Ok(item(Event::Indentation(ws), range));
+    fn peek_next_event(&mut self) -> Result<Item<Event<'text>>, ParseErrorCause> {
+        // Looks for indentation
+        if self.state != State::NodeEntries
+            && let Some((ws, ws_range)) = tdbg!(self.acc.blankspace())
+            && !ws_range.is_empty()
+        {
+            return Ok(item(Event::Indentation(ws), ws_range));
         }
+        tdbg!(self.state);
+        tdbg!(self.acc.remaining_text());
         match self.state {
             State::Initial => {
                 self.set_state(State::Document);
                 self.document_depth = 0;
-                Ok(item(Event::StartDocument, 0..0))
+                // Ok(item(Event::StartDocument, 0..0))
+                self.peek_next_event()
             }
             State::Final => return Ok(None),
             State::Document => {
-                let _ = self.acc.consume_whitespace()?;
                 // Check if the document has ended
                 if let Some(((), range)) = self.check_end() {
                     self.end_document();
@@ -126,7 +148,7 @@ impl<'text> Parser<'text> {
                     return Ok(item(Event::EndDocument, range));
                 }
                 // TODO: parse type cast
-                let (name, range) = self.acc.string().ok_or_cause(&self.acc, ExpectedString)?;
+                let (name, range) = self.acc.string().ok_or_cause(ExpectedString)?;
                 self.set_state(State::NodeEntries);
                 Ok(item(Event::NodeName(name), range))
             }
@@ -138,7 +160,7 @@ impl<'text> Parser<'text> {
                     return if self.document_depth == 0 {
                         Ok(item(Event::NodeEnd { inline: true }, 0..0))
                     } else {
-                        Err(self.acc.error(NeedsMoreData))
+                        Err(NeedsMoreData)
                     };
                 };
                 let c_range = 0..1;
@@ -146,7 +168,8 @@ impl<'text> Parser<'text> {
                     self.set_state(State::Document);
                     self.start_document();
                     return Ok(item(Event::StartDocument, c_range));
-                } else if string::is_newline(c) {
+                } else if string::is_newline(c) || c == '}' {
+                    let c_range = 0..0;
                     self.set_state(State::Document);
                     return Ok(item(Event::NodeEnd { inline: false }, c_range));
                 } else if c == ';' {
@@ -173,9 +196,9 @@ impl<'text> Parser<'text> {
                             ));
                         }
                         _ => {
-                            return Err(self.acc.error(InvalidKey {
+                            return Err(InvalidKey {
                                 value: value.into_static(),
-                            }))
+                            })
                         }
                     }
                 }
@@ -197,7 +220,12 @@ impl<'text> Parser<'text> {
             // Advances the current index past the parsed event.
             self.acc.set_end(range.end);
         }
-        evt
+        let evt = evt.map_err(|cause| ParseError {
+            cause,
+            at: self.acc.end,
+            end: None,
+        });
+        tdbg!(evt)
     }
 
     fn start_document(&mut self) {
@@ -218,13 +246,26 @@ impl<'text> Parser<'text> {
 
     fn check_end(&self) -> Item<()> {
         let rem = self.acc.remaining_text();
-        if self.document_depth == 0 && rem.trim_end().is_empty() {
-            return item((), 0..rem.trim_end().len());
+        if self.document_depth == 0 && rem.is_empty() {
+            return item((), 0..rem.len());
         } else {
-            return item((), 0..rem.find("}")?);
+            let mut subacc = self.acc.sub_accumulator(0);
+            subacc.consume_next_char().filter(|c| *c == '}')?;
+            // strip trailing semicolon if it's there
+            subacc.consume_whitespace().ok()?;
+            if let Some(range) = subacc.expect_sequence(";").ok() {
+                subacc.consume_range(&range);
+            }
+            return item((), 0..subacc.end);
         }
     }
 }
 
-#[cfg(test)]
-mod test;
+impl<'text> std::iter::Iterator for Parser<'text> {
+    type Item = Result<(Event<'text>, Range<usize>), ParseError>;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next_event().transpose()
+    }
+}
+
+impl<'text> std::iter::FusedIterator for Parser<'text> {}

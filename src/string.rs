@@ -1,7 +1,8 @@
 use std::borrow::Cow;
 
 use crate::prelude::*;
-use crate::{item, Item, ParseError, Text};
+use crate::tdbg;
+use crate::{item, Item, Text};
 
 pub(crate) const fn is_whitespace(c: char) -> bool {
     match c {
@@ -80,10 +81,41 @@ pub(crate) trait ParseString<'text>: Buffer<'text> {
         item(amount, 0..amount)
     }
 
-    fn consume_whitespace(&mut self) -> Result<(usize, Range<usize>), ParseError> {
-        let v = self.whitespace().ok_or_eof(self.buffer())?;
+    fn blankspace(&self) -> Item<usize> {
+        let mut char_count = 0;
+        let mut space_amount = 0;
+        // look for the previously visited char to check if it was a newline
+        //        if self
+        //            .text()
+        //            .chars()
+        //            .last()
+        //            .map(is_newline)
+        //            .unwrap_or_default()
+        //        {
+        //            visited_newline = true;
+        //        }
+        for (count, c) in self.remaining_text().chars().enumerate() {
+            char_count = count;
+            tdbg!(c);
+            if is_whitespace(c) {
+                if c == '\t' {
+                    space_amount += 4;
+                } else {
+                    space_amount += 1;
+                }
+            } else if is_newline(c) {
+                space_amount = 0;
+            } else {
+                break;
+            }
+        }
+        item(space_amount, 0..char_count)
+    }
+
+    fn consume_whitespace(&mut self) -> Result<(), ParseErrorCause> {
+        let v = self.whitespace().ok_or_eof()?;
         self.advance_bytes(v.0);
-        Ok(v)
+        Ok(())
     }
 
     fn string(&self) -> Item<KdlString<'text>> {
