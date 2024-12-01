@@ -1,0 +1,117 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node1"
+      }
+    },
+    {
+      "start": 0,
+      "end": 5
+    }
+  ],
+  [
+    "StartDocument",
+    {
+      "start": 6,
+      "end": 7
+    }
+  ],
+  [
+    {
+      "Indentation": 4
+    },
+    {
+      "start": 7,
+      "end": 12
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node2"
+      }
+    },
+    {
+      "start": 12,
+      "end": 17
+    }
+  ],
+  [
+    "StartDocument",
+    {
+      "start": 18,
+      "end": 19
+    }
+  ],
+  [
+    {
+      "Indentation": 8
+    },
+    {
+      "start": 19,
+      "end": 28
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node"
+      }
+    },
+    {
+      "start": 28,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": false
+      }
+    },
+    {
+      "start": 32,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "Indentation": 4
+    },
+    {
+      "start": 32,
+      "end": 37
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 37,
+      "end": 38
+    }
+  ],
+  [
+    {
+      "Indentation": 0
+    },
+    {
+      "start": 38,
+      "end": 39
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 39,
+      "end": 40
+    }
+  ]
+]

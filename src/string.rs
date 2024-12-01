@@ -53,6 +53,7 @@ pub(crate) const fn is_non_identifier(c: char) -> bool {
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct KdlString<'text> {
     pub string: Text<'text>,
 }
@@ -95,15 +96,16 @@ pub(crate) trait ParseString<'text>: Buffer<'text> {
         //            visited_newline = true;
         //        }
         for (count, c) in self.remaining_text().chars().enumerate() {
-            char_count = count;
             tdbg!(c);
             if is_whitespace(c) {
+                char_count = count + 1;
                 if c == '\t' {
                     space_amount += 4;
                 } else {
                     space_amount += 1;
                 }
             } else if is_newline(c) {
+                char_count = count + 1;
                 space_amount = 0;
             } else {
                 break;

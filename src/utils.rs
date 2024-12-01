@@ -8,16 +8,16 @@ pub(crate) fn first_char(seq: &[u8]) -> Option<char> {
 }
 
 pub(crate) fn utf8_byte_len(i: u8) -> u8 {
-    if i < 192 {
+    if (i >> 7 & 1) == 0 {
         return 1;
-    } else if i >> 5 & 1 == 0 {
+    } else if i >> 5 == 0b110 {
         2
-    } else if i >> 6 & 1 == 0 {
+    } else if i >> 4 == 0b1110 {
         3
-    } else if i >> 7 & 1 == 0 {
+    } else if i >> 3 == 0b11110 {
         4
     } else {
-        unreachable!("Invalid utf-8 sequence!")
+        unreachable!("Invalid utf-8 sequence: {}", i)
     }
 }
 

@@ -1,0 +1,53 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node"
+      }
+    },
+    {
+      "start": 0,
+      "end": 4
+    }
+  ],
+  [
+    {
+      "NodeEntry": {
+        "Argument": {
+          "String": {
+            "string": "\"hello\\nworld\""
+          }
+        }
+      }
+    },
+    {
+      "start": 5,
+      "end": 19
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": true
+      }
+    },
+    {
+      "start": 19,
+      "end": 19
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 19,
+      "end": 19
+    }
+  ]
+]

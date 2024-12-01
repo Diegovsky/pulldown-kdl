@@ -1,0 +1,62 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node"
+      }
+    },
+    {
+      "start": 0,
+      "end": 4
+    }
+  ],
+  [
+    {
+      "NodeEntry": {
+        "Argument": {
+          "String": {
+            "string": "\"\n    hey\n everyone\n     how goes?\n  \""
+          }
+        }
+      }
+    },
+    {
+      "start": 5,
+      "end": 43
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": false
+      }
+    },
+    {
+      "start": 43,
+      "end": 43
+    }
+  ],
+  [
+    {
+      "Indentation": 0
+    },
+    {
+      "start": 43,
+      "end": 44
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 44,
+      "end": 44
+    }
+  ]
+]

@@ -1,0 +1,78 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node"
+      }
+    },
+    {
+      "start": 0,
+      "end": 4
+    }
+  ],
+  [
+    {
+      "NodeEntry": {
+        "Property": {
+          "key": {
+            "string": "prop"
+          },
+          "value": {
+            "String": {
+              "string": "10"
+            }
+          }
+        }
+      }
+    },
+    {
+      "start": 5,
+      "end": 12
+    }
+  ],
+  [
+    {
+      "NodeEntry": {
+        "Property": {
+          "key": {
+            "string": "prop"
+          },
+          "value": {
+            "String": {
+              "string": "11"
+            }
+          }
+        }
+      }
+    },
+    {
+      "start": 13,
+      "end": 20
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": true
+      }
+    },
+    {
+      "start": 20,
+      "end": 20
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 20,
+      "end": 20
+    }
+  ]
+]

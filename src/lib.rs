@@ -33,6 +33,7 @@ enum State {
     Final,
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum KdlNodeEntry<'text> {
     Argument(KdlValue<'text>),
     Property {
@@ -42,6 +43,7 @@ pub enum KdlNodeEntry<'text> {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Event<'text> {
     StartDocument,
     EndDocument,
@@ -54,7 +56,7 @@ pub enum Event<'text> {
 pub type Text<'a> = Cow<'a, str>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum KdlValue<'text> {
     String(KdlString<'text>),
 }
@@ -68,6 +70,7 @@ impl<'text> KdlValue<'text> {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub enum ParseErrorCause {
     ExpectedString,
     ExpectedValue,
@@ -77,6 +80,7 @@ pub enum ParseErrorCause {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct ParseError {
     cause: ParseErrorCause,
     at: usize,
@@ -91,15 +95,9 @@ impl std::fmt::Display for ParseError {
 
 impl std::error::Error for ParseError {}
 
-impl ParseError {
-    fn with_length(mut self, end: usize) -> Self {
-        self.end = Some(self.at + end);
-        self
-    }
-}
-
-type Item<T> = Option<(T, Range<usize>)>;
-type ResultItem<T> = Result<(T, Range<usize>), ParseErrorCause>;
+pub type Ranged<T> = (T, Range<usize>);
+type Item<T> = Option<Ranged<T>>;
+type ResultItem<T> = Result<Ranged<T>, ParseErrorCause>;
 pub(crate) fn item<T>(t: T, r: Range<usize>) -> Item<T> {
     Some((t, r))
 }
@@ -107,7 +105,6 @@ pub(crate) fn item<T>(t: T, r: Range<usize>) -> Item<T> {
 #[derive(Default, Clone, Copy)]
 pub struct Parser<'text> {
     acc: Acc<'text>,
-    node_just_ended: bool,
     document_depth: usize,
     state: State,
 }
@@ -134,8 +131,7 @@ impl<'text> Parser<'text> {
             State::Initial => {
                 self.set_state(State::Document);
                 self.document_depth = 0;
-                // Ok(item(Event::StartDocument, 0..0))
-                self.peek_next_event()
+                Ok(item(Event::StartDocument, 0..0))
             }
             State::Final => return Ok(None),
             State::Document => {
@@ -262,7 +258,7 @@ impl<'text> Parser<'text> {
 }
 
 impl<'text> std::iter::Iterator for Parser<'text> {
-    type Item = Result<(Event<'text>, Range<usize>), ParseError>;
+    type Item = Result<Ranged<Event<'text>>, ParseError>;
     fn next(&mut self) -> Option<Self::Item> {
         self.next_event().transpose()
     }

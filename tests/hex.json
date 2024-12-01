@@ -1,0 +1,53 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node"
+      }
+    },
+    {
+      "start": 0,
+      "end": 4
+    }
+  ],
+  [
+    {
+      "NodeEntry": {
+        "Argument": {
+          "String": {
+            "string": "0xabcdef1234567890"
+          }
+        }
+      }
+    },
+    {
+      "start": 5,
+      "end": 23
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": true
+      }
+    },
+    {
+      "start": 23,
+      "end": 23
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 23,
+      "end": 23
+    }
+  ]
+]

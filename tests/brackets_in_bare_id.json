@@ -1,0 +1,56 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "foo123"
+      }
+    },
+    {
+      "start": 0,
+      "end": 6
+    }
+  ],
+  [
+    "StartDocument",
+    {
+      "start": 6,
+      "end": 7
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "bar"
+      }
+    },
+    {
+      "start": 7,
+      "end": 10
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": false
+      }
+    },
+    {
+      "start": 10,
+      "end": 10
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 10,
+      "end": 11
+    }
+  ]
+]

@@ -1,0 +1,47 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node"
+      }
+    },
+    {
+      "start": 0,
+      "end": 4
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": false
+      }
+    },
+    {
+      "start": 4,
+      "end": 4
+    }
+  ],
+  [
+    {
+      "Indentation": 0
+    },
+    {
+      "start": 4,
+      "end": 5
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 5,
+      "end": 5
+    }
+  ]
+]

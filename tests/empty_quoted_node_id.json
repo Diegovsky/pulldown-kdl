@@ -1,0 +1,62 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "\"\""
+      }
+    },
+    {
+      "start": 0,
+      "end": 2
+    }
+  ],
+  [
+    {
+      "NodeEntry": {
+        "Argument": {
+          "String": {
+            "string": "arg"
+          }
+        }
+      }
+    },
+    {
+      "start": 3,
+      "end": 6
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": false
+      }
+    },
+    {
+      "start": 6,
+      "end": 6
+    }
+  ],
+  [
+    {
+      "Indentation": 0
+    },
+    {
+      "start": 6,
+      "end": 7
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 7,
+      "end": 7
+    }
+  ]
+]

@@ -1,0 +1,60 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node1"
+      }
+    },
+    {
+      "start": 0,
+      "end": 5
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": true
+      }
+    },
+    {
+      "start": 5,
+      "end": 6
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node2"
+      }
+    },
+    {
+      "start": 6,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": true
+      }
+    },
+    {
+      "start": 11,
+      "end": 11
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 11,
+      "end": 11
+    }
+  ]
+]

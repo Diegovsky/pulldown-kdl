@@ -1,0 +1,100 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node2"
+      }
+    },
+    {
+      "start": 0,
+      "end": 5
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": false
+      }
+    },
+    {
+      "start": 5,
+      "end": 5
+    }
+  ],
+  [
+    {
+      "Indentation": 0
+    },
+    {
+      "start": 5,
+      "end": 6
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node5"
+      }
+    },
+    {
+      "start": 6,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": false
+      }
+    },
+    {
+      "start": 11,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Indentation": 0
+    },
+    {
+      "start": 11,
+      "end": 12
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node1"
+      }
+    },
+    {
+      "start": 12,
+      "end": 17
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": true
+      }
+    },
+    {
+      "start": 17,
+      "end": 17
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 17,
+      "end": 17
+    }
+  ]
+]

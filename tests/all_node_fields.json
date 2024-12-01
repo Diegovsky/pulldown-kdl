@@ -1,0 +1,118 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node"
+      }
+    },
+    {
+      "start": 0,
+      "end": 4
+    }
+  ],
+  [
+    {
+      "NodeEntry": {
+        "Argument": {
+          "String": {
+            "string": "arg"
+          }
+        }
+      }
+    },
+    {
+      "start": 5,
+      "end": 8
+    }
+  ],
+  [
+    {
+      "NodeEntry": {
+        "Property": {
+          "key": {
+            "string": "prop"
+          },
+          "value": {
+            "String": {
+              "string": "val"
+            }
+          }
+        }
+      }
+    },
+    {
+      "start": 9,
+      "end": 17
+    }
+  ],
+  [
+    "StartDocument",
+    {
+      "start": 18,
+      "end": 19
+    }
+  ],
+  [
+    {
+      "Indentation": 4
+    },
+    {
+      "start": 19,
+      "end": 24
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "inner_node"
+      }
+    },
+    {
+      "start": 24,
+      "end": 34
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": false
+      }
+    },
+    {
+      "start": 34,
+      "end": 34
+    }
+  ],
+  [
+    {
+      "Indentation": 0
+    },
+    {
+      "start": 34,
+      "end": 35
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 35,
+      "end": 36
+    }
+  ],
+  [
+    {
+      "Indentation": 0
+    },
+    {
+      "start": 36,
+      "end": 37
+    }
+  ]
+]

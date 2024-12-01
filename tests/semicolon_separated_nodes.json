@@ -1,0 +1,78 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node1"
+      }
+    },
+    {
+      "start": 0,
+      "end": 5
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": true
+      }
+    },
+    {
+      "start": 5,
+      "end": 6
+    }
+  ],
+  [
+    {
+      "Indentation": 1
+    },
+    {
+      "start": 6,
+      "end": 7
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node2"
+      }
+    },
+    {
+      "start": 7,
+      "end": 12
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": true
+      }
+    },
+    {
+      "start": 12,
+      "end": 13
+    }
+  ],
+  [
+    {
+      "Indentation": 1
+    },
+    {
+      "start": 13,
+      "end": 14
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 14,
+      "end": 14
+    }
+  ]
+]

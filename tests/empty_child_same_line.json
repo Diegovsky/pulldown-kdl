@@ -1,0 +1,34 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "node"
+      }
+    },
+    {
+      "start": 0,
+      "end": 4
+    }
+  ],
+  [
+    "StartDocument",
+    {
+      "start": 5,
+      "end": 6
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 6,
+      "end": 7
+    }
+  ]
+]
