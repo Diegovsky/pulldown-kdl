@@ -1,18 +1,2 @@
-[package]
-name = "pulldown-kdl"
-version = "0.1.0"
-edition = "2021"
-
 [workspace]
-members = ["emitter", "tester"]
-
-[features]
-default = ["serde"]
-debug = []
-serde = ["dep:serde"]
-
-[dev-dependencies]
-assert_matches = "1.5.0"
-
-[dependencies]
-serde = { version = "1.0.215", features = ["derive"], optional = true }
+members = ["pulldown-kdl", "emitter", "tester"]

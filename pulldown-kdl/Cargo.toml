@@ -1,0 +1,12 @@
+[package]
+name = "pulldown-kdl"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["serde"]
+debug = []
+serde = ["dep:serde"]
+
+[dependencies]
+serde = { version = "1.0.215", features = ["derive"], optional = true }

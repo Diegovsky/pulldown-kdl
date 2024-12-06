@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use pulldown_kdl_emitter::KdlEmitter;
+use emitter::KdlEmitter;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let name = std::env::args().nth(1).unwrap();

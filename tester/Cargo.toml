@@ -5,5 +5,5 @@ edition = "2021"
 
 [dependencies]
 lexopt = "0.3.0"
-pulldown-kdl = { version = "0.1.0", path = ".." }
+pulldown-kdl = { version = "0.1.0", path = "../pulldown-kdl" }
 serde_json = "1.0.133"
