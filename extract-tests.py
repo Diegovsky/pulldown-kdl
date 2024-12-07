@@ -53,8 +53,7 @@ for file in Path('.').iterdir():
 os.chdir('..')
 
 say('Cleaning up...')
-for new_test in glob('*.kdl'):
-    new_test = Path(new_test)
+for new_test in temp_test_folder.iterdir():
     _ = new_test.rename(Path('tests/') / new_test.name)
 
 shutil.rmtree(temp_test_folder)

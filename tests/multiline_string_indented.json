@@ -22,14 +22,44 @@
       "NodeEntry": {
         "Argument": {
           "String": {
+            "string": "\"\""
+          }
+        }
+      }
+    },
+    {
+      "start": 7,
+      "end": 7
+    }
+  ],
+  [
+    {
+      "NodeEntry": {
+        "Argument": {
+          "String": {
             "string": "\"\n    hey\n   everyone\n     how goes?\n  \""
           }
         }
       }
     },
     {
-      "start": 5,
-      "end": 45
+      "start": 47,
+      "end": 47
+    }
+  ],
+  [
+    {
+      "NodeEntry": {
+        "Argument": {
+          "String": {
+            "string": "\"\""
+          }
+        }
+      }
+    },
+    {
+      "start": 49,
+      "end": 49
     }
   ],
   [
@@ -39,8 +69,8 @@
       }
     },
     {
-      "start": 45,
-      "end": 45
+      "start": 49,
+      "end": 49
     }
   ],
   [
@@ -48,15 +78,15 @@
       "Indentation": 0
     },
     {
-      "start": 45,
-      "end": 46
+      "start": 49,
+      "end": 50
     }
   ],
   [
     "EndDocument",
     {
-      "start": 46,
-      "end": 46
+      "start": 50,
+      "end": 50
     }
   ]
 ]

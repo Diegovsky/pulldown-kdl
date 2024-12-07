@@ -1,0 +1,53 @@
+[
+  [
+    "StartDocument",
+    {
+      "start": 0,
+      "end": 0
+    }
+  ],
+  [
+    {
+      "NodeName": {
+        "string": "foo123"
+      }
+    },
+    {
+      "start": 0,
+      "end": 6
+    }
+  ],
+  [
+    {
+      "NodeEntry": {
+        "Argument": {
+          "String": {
+            "string": "\"bar weeee\n"
+          }
+        }
+      }
+    },
+    {
+      "start": 17,
+      "end": 17
+    }
+  ],
+  [
+    {
+      "NodeEnd": {
+        "inline": true
+      }
+    },
+    {
+      "start": 17,
+      "end": 17
+    }
+  ],
+  [
+    "EndDocument",
+    {
+      "start": 17,
+      "end": 17
+    }
+  ]
+]
