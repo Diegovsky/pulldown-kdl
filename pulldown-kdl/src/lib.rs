@@ -1,19 +1,24 @@
+#![doc = include_str!("../../README.md")]
 #![feature(let_chains)]
 use std::borrow::Cow;
 use std::ops::Range;
 use std::str;
 
-mod parser;
-mod prelude;
-mod string;
-mod utils;
+pub(crate) mod error;
+pub(crate) mod parser;
+pub(crate) mod prelude;
+pub(crate) mod string;
+pub(crate) mod utils;
+pub(crate) mod value;
+
+pub use error::{ParseError, ParseErrorCause};
 
 use parser::Parse;
 use prelude::*;
 pub use string::KdlString;
 use string::{is_equals, ParseString};
+pub use value::KdlValue;
 
-#[macro_export]
 macro_rules! tdbg {
     ($expr:expr) => {{
         if cfg!(feature = "debug") {
@@ -24,7 +29,9 @@ macro_rules! tdbg {
     }};
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(crate) use tdbg;
+
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 enum State {
     #[default]
     Initial,
@@ -32,7 +39,7 @@ enum State {
     NodeEntries,
     Final,
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum KdlNodeEntry<'text> {
     Argument(KdlValue<'text>),
@@ -42,7 +49,7 @@ pub enum KdlNodeEntry<'text> {
     },
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Event<'text> {
     StartDocument,
@@ -54,46 +61,6 @@ pub enum Event<'text> {
 }
 
 pub type Text<'a> = Cow<'a, str>;
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum KdlValue<'text> {
-    String(KdlString<'text>),
-}
-
-impl<'text> KdlValue<'text> {
-    fn into_static(self) -> KdlValue<'static> {
-        match self {
-            KdlValue::String(val) => KdlValue::String(val.into_static()),
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub enum ParseErrorCause {
-    ExpectedString,
-    ExpectedValue,
-    ExpectedSequence { sequence: &'static str },
-    InvalidKey { value: KdlValue<'static> },
-    NeedsMoreData,
-}
-
-#[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub struct ParseError {
-    cause: ParseErrorCause,
-    at: usize,
-    end: Option<usize>,
-}
-
-impl std::fmt::Display for ParseError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
-    }
-}
-
-impl std::error::Error for ParseError {}
 
 pub type Ranged<T> = (T, Range<usize>);
 type Item<T> = Option<Ranged<T>>;
@@ -144,7 +111,7 @@ impl<'text> Parser<'text> {
                     return Ok(item(Event::EndDocument, range));
                 }
                 // TODO: parse type cast
-                let (name, range) = self.acc.string().ok_or_cause(ExpectedString)?;
+                let (name, range) = self.acc.string().ok_or_cause(InvalidNodeName)?;
                 self.set_state(State::NodeEntries);
                 Ok(item(Event::NodeName(name), range))
             }
@@ -173,10 +140,10 @@ impl<'text> Parser<'text> {
                     return Ok(item(Event::NodeEnd { inline: true }, c_range));
                 }
 
-                let mut sub = self.acc.sub_accumulator(0);
                 // TODO: parse type cast
-                let (value, range) = sub.expect_value()?;
-                sub.consume_range(&range);
+                let (value, range) = self.acc.expect_value()?;
+                self.acc.consume_range(&range);
+                let mut sub = self.acc.sub_accumulator(0);
                 if let Some(c) = sub.peek_char()
                     && is_equals(c)
                 {
@@ -193,7 +160,7 @@ impl<'text> Parser<'text> {
                         }
                         _ => {
                             return Err(InvalidKey {
-                                value: value.into_static(),
+                                value: value.into_owned(),
                             })
                         }
                     }
@@ -207,7 +174,7 @@ impl<'text> Parser<'text> {
         }
     }
 
-    pub fn next_event(&mut self) -> Result<Item<Event<'text>>, ParseError> {
+    pub fn next_event_borrowed(&mut self) -> Result<Item<Event<'text>>, ParseError<'text>> {
         let mut evt = self.peek_next_event();
         if let Ok(Some((_evt, range))) = &mut evt {
             // Updates the range to be absolute
@@ -219,9 +186,13 @@ impl<'text> Parser<'text> {
         let evt = evt.map_err(|cause| ParseError {
             cause,
             at: self.acc.end,
-            end: None,
+            source: self.acc.base().into(),
         });
         tdbg!(evt)
+    }
+
+    pub fn next_event(&mut self) -> Result<Item<Event<'text>>, ParseError<'static>> {
+        self.next_event_borrowed().map_err(|e| e.into_owned())
     }
 
     fn start_document(&mut self) {
@@ -258,7 +229,7 @@ impl<'text> Parser<'text> {
 }
 
 impl<'text> std::iter::Iterator for Parser<'text> {
-    type Item = Result<Ranged<Event<'text>>, ParseError>;
+    type Item = Result<Ranged<Event<'text>>, ParseError<'static>>;
     fn next(&mut self) -> Option<Self::Item> {
         self.next_event().transpose()
     }

@@ -1,10 +1,14 @@
 # Pulldown-KDL
-This project implements a pull parser for the [`KDL Document Language`] version 2, written in Rust.
+This project implements a pull parser for the [`KDL`] Document Language version 2, written in Rust.
 
+
+## Rationale
 Unlike node-based or serde-based parsers, pull parsers don't load the document at once in memory, choosing instead to "stream" events as it reads the document. This improves performance while also allowing other types of parsers to be built as higher level abstractions. Check out `pulldown-cmark`'s (a major inspiration in philosophy) short manifesto on [Why a pull parser](https://github.com/pulldown-cmark/pulldown-cmark?tab=readme-ov-file#why-a-pull-parser).
 
-
 It's currently in its infancy, so, if you need a complete and stable library, take a look at [`kdl-rs`](https://github.com/kdl-org/kdl-rs/).
+
+[`KDL`]: https://kdl.dev
+
 
 ## What is implemented
   - [x] Nodes
@@ -37,5 +41,3 @@ It's currently in its infancy, so, if you need a complete and stable library, ta
 
 Since this crate is developed to serve [`htmeta`](https://github.com/Diegovsky/htmeta)'s purpose, features related to that project are prioritized, but PRs for other features are definitetely welcome!
 
-
-[`KDL`]: https://kdl.dev

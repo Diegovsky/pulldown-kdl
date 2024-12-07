@@ -31,7 +31,7 @@ impl<'input> KdlEmitter<'input> {
     }
 
     pub fn emit(&mut self, writer: &mut dyn Write) -> Result<(), Box<dyn std::error::Error>> {
-        while let Some((event, _)) = self.parser.next_event()? {
+        while let Some((event, _)) = self.parser.next_event_borrowed()? {
             // Some elements have implicit spacing between them,
             // however, some elements shouldn't be preceded by space.
             // this code prevents these elements from having space before them.

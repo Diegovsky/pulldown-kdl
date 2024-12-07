@@ -9,4 +9,5 @@ debug = []
 serde = ["dep:serde"]
 
 [dependencies]
+miette = "7.4.0"
 serde = { version = "1.0.215", features = ["derive"], optional = true }
