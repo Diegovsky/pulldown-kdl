@@ -65,6 +65,9 @@ pub type Text<'a> = Cow<'a, str>;
 pub type Ranged<T> = (T, Range<usize>);
 type Item<T> = Option<Ranged<T>>;
 type ResultItem<T> = Result<Ranged<T>, ParseErrorCause>;
+pub(crate) fn result_item<T>(t: T, r: Range<usize>) -> ResultItem<T> {
+    Ok((t, r))
+}
 pub(crate) fn item<T>(t: T, r: Range<usize>) -> Item<T> {
     Some((t, r))
 }
@@ -111,7 +114,7 @@ impl<'text> Parser<'text> {
                     return Ok(item(Event::EndDocument, range));
                 }
                 // TODO: parse type cast
-                let (name, range) = self.acc.string().ok_or_cause(InvalidNodeName)?;
+                let (name, range) = self.acc.string()?;
                 self.set_state(State::NodeEntries);
                 Ok(item(Event::NodeName(name), range))
             }
@@ -143,7 +146,7 @@ impl<'text> Parser<'text> {
                 // TODO: parse type cast
                 let (value, range) = self.acc.expect_value()?;
                 self.acc.consume_range(&range);
-                let mut sub = self.acc.sub_accumulator(0);
+                let mut sub = self.acc.sub_accumulator();
                 if let Some(c) = sub.peek_char()
                     && is_equals(c)
                 {
@@ -216,11 +219,11 @@ impl<'text> Parser<'text> {
         if self.document_depth == 0 && rem.is_empty() {
             return item((), 0..rem.len());
         } else {
-            let mut subacc = self.acc.sub_accumulator(0);
+            let mut subacc = self.acc.sub_accumulator();
             subacc.consume_next_char().filter(|c| *c == '}')?;
             // strip trailing semicolon if it's there
             subacc.consume_whitespace().ok()?;
-            if let Some(range) = subacc.expect_sequence(";").ok() {
+            if let Some(range) = subacc.expect_sequence(";") {
                 subacc.consume_range(&range);
             }
             return item((), 0..subacc.end);

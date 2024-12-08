@@ -45,9 +45,9 @@ pub(crate) trait Buffer<'a> {
         Some(c)
     }
 
-    fn sub_accumulator(&self, offset: usize) -> Acc<'a> {
+    fn sub_accumulator(&self) -> Acc<'a> {
         Acc {
-            base: &self.base()[(self.end() + offset)..],
+            base: &self.base()[self.end()..],
             end: 0,
         }
     }
@@ -57,11 +57,11 @@ pub(crate) trait Buffer<'a> {
         self.advance_bytes(range.end);
     }
 
-    fn expect_sequence(&self, seq: &'static str) -> Result<Range<usize>, ParseErrorCause> {
+    fn expect_sequence(&self, seq: &'static str) -> Option<Range<usize>> {
         if !self.remaining_text().starts_with(seq) {
-            return Err(ParseErrorCause::ExpectedSequence { sequence: seq });
+            return None;
         }
-        Ok(0..seq.len())
+        Some(0..seq.len())
     }
 
     fn peek_byte(&self) -> Option<u8> {

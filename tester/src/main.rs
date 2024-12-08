@@ -146,8 +146,11 @@ fn main() -> miette::Result<()> {
     };
     match result {
         Err(Error::ParseError(e)) => Err(e)?,
-        Err(Error::Other(e)) => println!("{}", e),
-        _ => (),
+        Err(Error::Other(e)) => {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        }
+        _ => (()),
     };
     Ok(())
 }

@@ -1,8 +1,17 @@
 use std::borrow::Cow;
 
 use crate::prelude::*;
+use crate::result_item;
 use crate::tdbg;
+use crate::ResultItem;
 use crate::{item, Item, Text};
+
+pub(crate) const fn is_digit(c: char) -> bool {
+    match c {
+        '0'..='9' => true,
+        _ => false,
+    }
+}
 
 pub(crate) const fn is_whitespace(c: char) -> bool {
     match c {
@@ -120,13 +129,15 @@ pub(crate) trait ParseString<'text>: Buffer<'text> {
         Ok(())
     }
 
-    fn string(&self) -> Item<KdlString<'text>> {
+    fn string(&self) -> ResultItem<KdlString<'text>> {
         let mut end_sequence = None;
-        let mut acc = self.sub_accumulator(0);
+        let mut acc = self.sub_accumulator();
 
-        match acc.peek_char()? {
+        match acc.peek_char().ok_or(ParseErrorCause::NeedsMoreData)? {
             q @ '"' => end_sequence = Some(q),
-            c if is_non_identifier(c) => return None,
+            c if is_non_identifier(c) || is_digit(c) => {
+                return Err(ParseErrorCause::InvalidCharacter { c })
+            }
             _ => (),
         };
 
@@ -146,7 +157,7 @@ pub(crate) trait ParseString<'text>: Buffer<'text> {
             }
         }
 
-        item(KdlString::from_str(acc.text()), acc.range())
+        result_item(KdlString::from_str(acc.text()), acc.range())
     }
 }
 

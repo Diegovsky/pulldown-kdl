@@ -3,6 +3,10 @@ name = "tester"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = []
+debug = ["pulldown-kdl/debug"]
+
 [dependencies]
 lexopt = "0.3.0"
 miette = { version = "7.4.0", features = ["fancy"] }

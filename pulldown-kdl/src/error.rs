@@ -7,9 +7,7 @@ use crate::value::KdlValue;
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub enum ParseErrorCause {
-    InvalidNodeName,
-    ExpectedValue,
-    ExpectedSequence { sequence: &'static str },
+    InvalidCharacter { c: char },
     InvalidKey { value: KdlValue<'static> },
     NeedsMoreData,
 }
@@ -36,9 +34,9 @@ impl<'test> std::fmt::Display for ParseError<'test> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use ParseErrorCause::*;
         match &self.cause {
-            ExpectedSequence { sequence } => write!(f, "Expected the sequence '{sequence}'"),
-            ExpectedValue => write!(f, "Expected a value"),
-            InvalidNodeName => write!(f, "Got an invalid node name"),
+            InvalidCharacter { c } => {
+                write!(f, "Got an invalid character '{c}' while parsing a string")
+            }
             InvalidKey { value } => write!(f, "Expected a valid string, but got a {value} instead"),
             NeedsMoreData => write!(f, "The source ended abrubtly"),
         }
