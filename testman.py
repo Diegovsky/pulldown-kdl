@@ -11,6 +11,11 @@ from typing import cast
 from requests import get
 
 tester = Path('target/debug/tester').resolve()
+print(f'Tester: {tester!r}')
+if not tester.exists():
+    print('`tester` binary not found!')
+    exit(-1)
+
 tests_folder = Path('tests/')
 
 
