@@ -1,4 +1,4 @@
 [workspace]
 members = ["pulldown-kdl", "emitter", "tester"]
-default-members = ["pulldown-kdl"]
+default-members = ["pulldown-kdl", "tester"]
 resolver = "2"
