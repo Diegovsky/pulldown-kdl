@@ -19,7 +19,7 @@ if not tester.exists():
 tests_folder = Path('tests/')
 
 
-type Run = tuple[Path, bytes]
+type Run = tuple[Path, str]
 
 
 def test_all_files(
@@ -41,7 +41,7 @@ def test_all_files(
         has_failed = p.wait() != 0
         stdout = p.stdout
         assert stdout is not None
-        run = (f, stdout.read())
+        run = (f, stdout.read().decode())
         if has_failed:
             failed.append(run)
             print(f'\x1b[1;34m{f} \x1b[1;31mFAIL\x1b[0m')
