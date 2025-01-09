@@ -130,12 +130,13 @@ impl<'text> Parser<'text> {
                 let Some(c) = self.acc.peek_char() else {
                     self.set_state(State::Document);
                     return if self.document_depth == 0 {
-                        Ok(item(Event::NodeEnd { inline: true }, 0..0))
+                        Ok(item(Event::NodeEnd { inline: false }, 0..0))
                     } else {
                         Err(NeedsMoreData)
                     };
                 };
                 let c_range = 0..1;
+                tdbg!(c);
                 if c == '{' {
                     self.set_state(State::Document);
                     self.start_document();
@@ -230,7 +231,7 @@ impl<'text> Parser<'text> {
             if let Some(range) = subacc.expect_sequence(";") {
                 subacc.consume_range(&range);
             }
-            return item((), 0..subacc.end);
+            return item((), subacc.range());
         }
     }
 }

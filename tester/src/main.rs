@@ -44,6 +44,7 @@ impl Args {
 #[derive(Debug)]
 enum Error {
     ParseError(ParseError<'static>),
+    Message(String),
     Other(Box<dyn std::error::Error>),
 }
 
@@ -80,45 +81,64 @@ fn check(filename: &Path) -> R {
         std::fs::File::open(filename.with_extension("json"))?,
     ))?;
     let mut depth = 0;
+    let mut failed = false;
     // check if range in document corresponds to what is expected
     for (e, range) in expected {
-        let expected = &contents[range];
+        let found = &contents[range.clone()];
+
+        macro_rules! assert_expected {
+            ($found:expr, $expected:expr) => {{
+                let found = $found;
+                let expected = $expected;
+                if found != expected {
+                    failed = true;
+                    eprintln!("EXPECTED: {expected:?}");
+                    eprintln!("FOUND: {found:?}");
+                    eprintln!("{}:{}", range.start, range.end);
+                    eprintln!("")
+                }
+            }};
+        }
         match e {
             Event::StartDocument => {
                 if depth == 0 {
-                    assert_eq!(expected, "");
+                    assert_expected!(found, "");
                 } else {
-                    assert_eq!(expected, "{");
+                    assert_expected!(found, "{");
                 }
                 depth += 1;
             }
             Event::EndDocument => {
                 depth -= 1;
                 if depth == 0 {
-                    assert_eq!(expected, "");
+                    assert_expected!(found, "");
                 } else {
-                    assert_eq!(expected, "}");
+                    assert_expected!(found, "}");
                 }
             }
-            Event::NodeEnd { inline: true } => assert_eq!(expected, ";"),
-            Event::NodeEnd { inline: false } => assert_eq!(expected, ""),
+            Event::NodeEnd { inline: true } => assert_expected!(found, ";"),
+            Event::NodeEnd { inline: false } => assert_expected!(found, ""),
             Event::Indentation(_) => (), //nothing can be done
-            Event::NodeName(name) => assert_eq!(expected, name.string),
+            Event::NodeName(name) => assert_expected!(found, name.string),
             Event::NodeEntry(entry) => match entry {
                 KdlNodeEntry::Argument(val) => match val {
-                    KdlValue::String(val) => assert_eq!(expected, val.string),
+                    KdlValue::String(val) => assert_expected!(found, val.string),
                     _ => todo!(),
                 },
                 KdlNodeEntry::Property { key, value } => match value {
                     KdlValue::String(value) => {
-                        assert_eq!(expected, format!("{}={}", key.string, value.string))
+                        assert_expected!(found, format!("{}={}", key.string, value.string))
                     }
                     _ => todo!(),
                 },
             },
         }
     }
-    Ok(())
+    if failed {
+        Err(Error::Message("Document failed to check".into()))
+    } else {
+        Ok(())
+    }
 }
 
 fn compare(filename: &Path) -> R {
@@ -145,12 +165,16 @@ fn main() -> miette::Result<()> {
         Mode::Compare => compare(filename),
     };
     match result {
-        Err(Error::ParseError(e)) => Err(e)?,
-        Err(Error::Other(e)) => {
+        Ok(()) => (),
+        Err(e) => {
+            let e: &dyn std::fmt::Display = match e {
+                Error::Message(ref msg) => msg,
+                Error::Other(ref e) => e,
+                Error::ParseError(parse_error) => Err(parse_error)?,
+            };
             eprintln!("{}", e);
             std::process::exit(1);
         }
-        _ => (()),
     };
     Ok(())
 }

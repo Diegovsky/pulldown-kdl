@@ -40,7 +40,7 @@
   [
     {
       "NodeEnd": {
-        "inline": true
+        "inline": false
       }
     },
     {
