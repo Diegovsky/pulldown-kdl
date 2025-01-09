@@ -134,6 +134,10 @@ fn check(filename: &Path) -> R {
             },
         }
     }
+    if depth > 1 {
+        failed = true;
+        eprintln!("Document has less document ends than starts");
+    }
     if failed {
         Err(Error::Message("Document failed to check".into()))
     } else {

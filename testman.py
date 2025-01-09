@@ -96,7 +96,7 @@ def fetch_extract_tests():
 
 
 def main():
-    parser = ArgumentParser('run-tests')
+    parser = ArgumentParser('testman')
     _ = parser.add_argument('pattern', nargs='?', default='')
     _ = parser.add_argument(
         '-m',

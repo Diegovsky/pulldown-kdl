@@ -6,9 +6,16 @@ use crate::value::KdlValue;
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
+pub enum Expected {
+    LineEnd,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub enum ParseErrorCause {
-    InvalidCharacter { c: char },
+    InvalidStringCharacter { c: char },
     InvalidKey { value: KdlValue<'static> },
+    Expected(Expected),
     NeedsMoreData,
 }
 
@@ -32,12 +39,16 @@ impl<'text> ParseError<'text> {
 
 impl<'test> std::fmt::Display for ParseError<'test> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use self::Expected as Ex;
         use ParseErrorCause::*;
         match &self.cause {
-            InvalidCharacter { c } => {
+            InvalidStringCharacter { c } => {
                 write!(f, "Got an invalid character '{c}' while parsing a string")
             }
             InvalidKey { value } => write!(f, "Expected a valid string, but got a {value} instead"),
+            ParseErrorCause::Expected(Ex::LineEnd) => {
+                write!(f, "A line end (';' or newline) was expected")
+            }
             NeedsMoreData => write!(f, "The source ended abrubtly"),
         }
     }
@@ -50,6 +61,13 @@ impl<'text> miette::Diagnostic for ParseError<'text> {
         Some(Box::new(
             vec![LabeledSpan::new(Some("here".into()), self.at, 1)].into_iter(),
         ))
+    }
+    fn help<'a>(&'a self) -> Option<Box<dyn std::fmt::Display + 'a>> {
+        if let ParseErrorCause::Expected(Expected::LineEnd) = self.cause {
+            Some(Box::new("Insert a line break or a semicolon"))
+        } else {
+            None
+        }
     }
     fn source_code(&self) -> Option<&dyn miette::SourceCode> {
         Some(&self.source)

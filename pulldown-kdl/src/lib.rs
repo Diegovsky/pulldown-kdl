@@ -17,6 +17,7 @@ use parser::Parse;
 use prelude::*;
 pub use string::KdlString;
 use string::{is_equals, ParseString};
+use utils::OptionExt;
 pub use value::KdlValue;
 
 /// Ad-hoc tracing/debug facilities
@@ -31,19 +32,30 @@ macro_rules! tdbg {
     }};
 }
 
+macro_rules! tprintln {
+    ($($expr:expr),* $(,)?) => {{
+        if cfg!(feature = "debug") {
+            eprintln!($($expr),*)
+        }
+    }};
+}
+
 pub(crate) use tdbg;
+pub(crate) use tprintln;
 
 /// Represents the current parser state.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 enum State {
     #[default]
     Initial,
-    // Documents are just arrays of nodes, so parsing a document means looking for node names.
+    /// Documents are just arrays of nodes, so parsing a document means looking for node names.
     Document,
-    // After a node name is found, it is emitted and the parser is now looking for node entries,
-    // which are properties and/or arguments.
+    /// After a node name is found, it is emitted and the parser is now looking for node entries,
+    /// which are properties and/or arguments.
     NodeEntries,
-    // Means the parser managed to parse a document to the end and further attempts to get more tokens will result in `None`.
+    /// After a document ends and it is not the root document, we must also emit a [`Event::NodeEnd`] event.
+    DocumentEnd,
+    /// Means the parser managed to parse a document to the end and further attempts to get more tokens will result in `None`.
     Final,
 }
 #[derive(Clone, Debug, PartialEq)]
@@ -95,21 +107,33 @@ impl<'text> Parser<'text> {
 
     fn peek_next_event(&mut self) -> ParseResult<ItemEvent<'text>> {
         // Looks for indentation
-        if self.state != State::NodeEntries
-            && let Some((ws, ws_range)) = tdbg!(self.acc.peek_blankspace())
+        if !matches!(self.state, State::NodeEntries | State::DocumentEnd)
+            && let Some((ws, ws_range)) = self.acc.peek_blankspace()
             && !ws_range.is_empty()
         {
             return Ok(item(Event::Indentation(ws), ws_range));
         }
-        tdbg!(self.state);
-        tdbg!(self.acc.remaining_text());
+        tprintln!("== PARSE START ==");
+        tprintln!("state: {:?}", self.state);
+        tprintln!("depth: {:?}", self.document_depth);
+        tprintln!("{:?}", self.acc.remaining_text());
         match self.state {
             State::Initial => {
-                self.set_state(State::Document);
+                self.start_document();
                 self.document_depth = 0;
                 Ok(item(Event::StartDocument, 0..0))
             }
             State::Final => return Ok(None),
+            State::DocumentEnd => {
+                let c = self.acc.consume_next_char().ok_or_eof()?;
+                match self.check_node_end(c)? {
+                    Some(item) => {
+                        self.set_state(State::Document);
+                        Ok(item.into())
+                    }
+                    None => Err(ParseErrorCause::Expected(error::Expected::LineEnd)),
+                }
+            }
             State::Document => {
                 // Check if the document has ended
                 if let Some(((), range)) = self.check_end() {
@@ -136,18 +160,17 @@ impl<'text> Parser<'text> {
                     };
                 };
                 let c_range = 0..1;
-                tdbg!(c);
                 if c == '{' {
-                    self.set_state(State::Document);
                     self.start_document();
                     return Ok(item(Event::StartDocument, c_range));
-                } else if string::is_newline(c) || c == '}' {
-                    let c_range = 0..0;
+                } else if c == '}' {
+                    self.end_document();
+                    return Ok(item(Event::EndDocument, c_range));
+                }
+
+                if let Some(node_end) = self.check_node_end(c)? {
                     self.set_state(State::Document);
-                    return Ok(item(Event::NodeEnd { inline: false }, c_range));
-                } else if c == ';' {
-                    self.set_state(State::Document);
-                    return Ok(item(Event::NodeEnd { inline: true }, c_range));
+                    return Ok(Some(node_end));
                 }
 
                 // TODO: parse type cast
@@ -182,6 +205,16 @@ impl<'text> Parser<'text> {
         }
     }
 
+    pub fn check_node_end(&self, c: char) -> ParseResult<ItemEvent<'text>> {
+        if string::is_newline(c) {
+            Ok(item(Event::NodeEnd { inline: false }, 0..0))
+        } else if c == ';' {
+            Ok(item(Event::NodeEnd { inline: true }, 0..1))
+        } else {
+            Ok(None)
+        }
+    }
+
     pub fn next_event_borrowed(&mut self) -> Result<ItemEvent<'text>, ParseError<'text>> {
         let mut evt = self.peek_next_event();
         if let Ok(Some((_evt, range))) = &mut evt {
@@ -196,26 +229,34 @@ impl<'text> Parser<'text> {
             at: self.acc.end,
             source: self.acc.base().into(),
         });
-        tdbg!(evt)
+        tprintln!("RESULT:\n{:?}\n", evt);
+        evt
     }
 
     pub fn next_event(&mut self) -> Result<ItemEvent<'text>, ParseError<'static>> {
         self.next_event_borrowed().map_err(|e| e.into_owned())
     }
 
-    fn start_document(&mut self) {
-        self.document_depth += 1;
-    }
-
     fn is_root_document(&self) -> bool {
         self.document_depth == 0
     }
 
+    fn start_document(&mut self) {
+        self.set_state(State::Document);
+        self.document_depth += 1;
+    }
+
     fn end_document(&mut self) {
         self.document_depth = self.document_depth.saturating_sub(1);
+        if self.is_root_document() {
+            self.set_state(State::Document);
+        } else {
+            self.set_state(State::DocumentEnd);
+        }
     }
 
     fn set_state(&mut self, new_state: State) {
+        tprintln!("{:?} -> {:?}", self.state, new_state);
         self.state = new_state;
     }
 
@@ -226,11 +267,7 @@ impl<'text> Parser<'text> {
         } else {
             let mut subacc = self.acc.sub_accumulator();
             subacc.consume_next_char().filter(|c| *c == '}')?;
-            // strip trailing semicolon if it's there
             subacc.consume_whitespace().ok()?;
-            if let Some(range) = subacc.expect_sequence(";") {
-                subacc.consume_range(&range);
-            }
             return item((), subacc.range());
         }
     }

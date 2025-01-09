@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use crate::prelude::*;
-use crate::tdbg;
 use crate::ParseResult;
 use crate::Ranged;
 use crate::{item, Item, Text};
@@ -108,7 +107,6 @@ pub(crate) trait ParseString<'text>: Buffer<'text> {
         //            visited_newline = true;
         //        }
         for (count, c) in self.remaining_text().chars().enumerate() {
-            tdbg!(c);
             if is_whitespace(c) {
                 char_count = count + 1;
                 if c == '\t' {
@@ -139,7 +137,7 @@ pub(crate) trait ParseString<'text>: Buffer<'text> {
         match acc.peek_char().ok_or(ParseErrorCause::NeedsMoreData)? {
             q @ '"' => end_sequence = Some(q),
             c if is_non_identifier(c) || is_digit(c) => {
-                return Err(ParseErrorCause::InvalidCharacter { c })
+                return Err(ParseErrorCause::InvalidStringCharacter { c })
             }
             _ => (),
         };

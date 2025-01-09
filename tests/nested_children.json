@@ -100,10 +100,12 @@
   ],
   [
     {
-      "Indentation": 0
+      "NodeEnd": {
+        "inline": false
+      }
     },
     {
-      "start": 38,
+      "start": 39,
       "end": 39
     }
   ],
