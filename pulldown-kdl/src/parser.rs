@@ -1,13 +1,17 @@
-use crate::{prelude::*, string::ParseString, utils::OptionExt, Item, KdlValue, ResultItem};
+use crate::{
+    prelude::*, string::ParseString, utils::OptionExt, Item, KdlValue, ParseResult, Ranged,
+};
 
 pub(crate) trait Parse<'text>: Buffer<'text> + ParseString<'text> {
-    fn value(&self) -> ResultItem<KdlValue<'text>> {
-        self.string()
+    fn peek_value(&self) -> ParseResult<Ranged<KdlValue<'text>>> {
+        self.peek_string()
             .map(|(string, range)| (KdlValue::String(string), range))
     }
 
-    fn expect_value(&self) -> ResultItem<KdlValue<'text>> {
-        self.value()
+    fn consume_value(&mut self) -> ParseResult<Ranged<KdlValue<'text>>> {
+        let item = self.peek_value()?;
+        self.consume_range(&item.1);
+        Ok(item)
     }
 }
 

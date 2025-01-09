@@ -19,6 +19,8 @@ pub use string::KdlString;
 use string::{is_equals, ParseString};
 pub use value::KdlValue;
 
+/// Ad-hoc tracing/debug facilities
+/// If the `debug` feature is not enabled, does nothing
 macro_rules! tdbg {
     ($expr:expr) => {{
         if cfg!(feature = "debug") {
@@ -31,12 +33,17 @@ macro_rules! tdbg {
 
 pub(crate) use tdbg;
 
+/// Represents the current parser state.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 enum State {
     #[default]
     Initial,
+    // Documents are just arrays of nodes, so parsing a document means looking for node names.
     Document,
+    // After a node name is found, it is emitted and the parser is now looking for node entries,
+    // which are properties and/or arguments.
     NodeEntries,
+    // Means the parser managed to parse a document to the end and further attempts to get more tokens will result in `None`.
     Final,
 }
 #[derive(Clone, Debug, PartialEq)]
@@ -64,10 +71,9 @@ pub type Text<'a> = Cow<'a, str>;
 
 pub type Ranged<T> = (T, Range<usize>);
 type Item<T> = Option<Ranged<T>>;
-type ResultItem<T> = Result<Ranged<T>, ParseErrorCause>;
-pub(crate) fn result_item<T>(t: T, r: Range<usize>) -> ResultItem<T> {
-    Ok((t, r))
-}
+type ItemEvent<'text> = Item<Event<'text>>;
+type ParseResult<T> = Result<T, ParseErrorCause>;
+
 pub(crate) fn item<T>(t: T, r: Range<usize>) -> Item<T> {
     Some((t, r))
 }
@@ -87,10 +93,10 @@ impl<'text> Parser<'text> {
         }
     }
 
-    fn peek_next_event(&mut self) -> Result<Item<Event<'text>>, ParseErrorCause> {
+    fn peek_next_event(&mut self) -> ParseResult<ItemEvent<'text>> {
         // Looks for indentation
         if self.state != State::NodeEntries
-            && let Some((ws, ws_range)) = tdbg!(self.acc.blankspace())
+            && let Some((ws, ws_range)) = tdbg!(self.acc.peek_blankspace())
             && !ws_range.is_empty()
         {
             return Ok(item(Event::Indentation(ws), ws_range));
@@ -114,7 +120,7 @@ impl<'text> Parser<'text> {
                     return Ok(item(Event::EndDocument, range));
                 }
                 // TODO: parse type cast
-                let (name, range) = self.acc.string()?;
+                let (name, range) = self.acc.peek_string()?;
                 self.set_state(State::NodeEntries);
                 Ok(item(Event::NodeName(name), range))
             }
@@ -144,8 +150,7 @@ impl<'text> Parser<'text> {
                 }
 
                 // TODO: parse type cast
-                let (value, range) = self.acc.expect_value()?;
-                self.acc.consume_range(&range);
+                let (value, _) = self.acc.consume_value()?;
                 let mut sub = self.acc.sub_accumulator();
                 if let Some(c) = sub.peek_char()
                     && is_equals(c)
@@ -154,8 +159,7 @@ impl<'text> Parser<'text> {
                     // parse property
                     match value {
                         KdlValue::String(key) => {
-                            let (value, value_range) = sub.expect_value()?;
-                            sub.consume_range(&value_range);
+                            let (value, _) = sub.consume_value()?;
                             return Ok(item(
                                 Event::NodeEntry(KdlNodeEntry::Property { key, value }),
                                 0..sub.end,
@@ -177,7 +181,7 @@ impl<'text> Parser<'text> {
         }
     }
 
-    pub fn next_event_borrowed(&mut self) -> Result<Item<Event<'text>>, ParseError<'text>> {
+    pub fn next_event_borrowed(&mut self) -> Result<ItemEvent<'text>, ParseError<'text>> {
         let mut evt = self.peek_next_event();
         if let Ok(Some((_evt, range))) = &mut evt {
             // Updates the range to be absolute
@@ -194,7 +198,7 @@ impl<'text> Parser<'text> {
         tdbg!(evt)
     }
 
-    pub fn next_event(&mut self) -> Result<Item<Event<'text>>, ParseError<'static>> {
+    pub fn next_event(&mut self) -> Result<ItemEvent<'text>, ParseError<'static>> {
         self.next_event_borrowed().map_err(|e| e.into_owned())
     }
 

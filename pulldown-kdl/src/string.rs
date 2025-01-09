@@ -1,9 +1,9 @@
 use std::borrow::Cow;
 
 use crate::prelude::*;
-use crate::result_item;
 use crate::tdbg;
-use crate::ResultItem;
+use crate::ParseResult;
+use crate::Ranged;
 use crate::{item, Item, Text};
 
 pub(crate) const fn is_digit(c: char) -> bool {
@@ -61,19 +61,16 @@ pub(crate) const fn is_non_identifier(c: char) -> bool {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+use ownable::IntoOwned;
+
+#[derive(IntoOwned, Clone, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct KdlString<'text> {
     pub string: Text<'text>,
 }
 
 impl<'text> KdlString<'text> {
-    pub(crate) fn into_static(self) -> KdlString<'static> {
-        KdlString {
-            string: self.string.into_owned().into(),
-        }
-    }
-
+    /// A const-enabled constructor that creates a [`KdlString`] from a string slice.
     pub const fn from_str(data: &'text str) -> Self {
         Self {
             string: Cow::Borrowed(data),
@@ -81,8 +78,14 @@ impl<'text> KdlString<'text> {
     }
 }
 
+impl<'text> From<&'text str> for KdlString<'text> {
+    fn from(data: &'text str) -> Self {
+        Self::from_str(data)
+    }
+}
+
 pub(crate) trait ParseString<'text>: Buffer<'text> {
-    fn whitespace(&self) -> Item<usize> {
+    fn peek_whitespace(&self) -> Item<usize> {
         let amount = self
             .remaining_text()
             .chars()
@@ -91,7 +94,7 @@ pub(crate) trait ParseString<'text>: Buffer<'text> {
         item(amount, 0..amount)
     }
 
-    fn blankspace(&self) -> Item<usize> {
+    fn peek_blankspace(&self) -> Item<usize> {
         let mut char_count = 0;
         let mut space_amount = 0;
         // look for the previously visited char to check if it was a newline
@@ -123,13 +126,13 @@ pub(crate) trait ParseString<'text>: Buffer<'text> {
         item(space_amount, 0..char_count)
     }
 
-    fn consume_whitespace(&mut self) -> Result<(), ParseErrorCause> {
-        let v = self.whitespace().ok_or_eof()?;
+    fn consume_whitespace(&mut self) -> ParseResult<()> {
+        let v = self.peek_whitespace().ok_or_eof()?;
         self.advance_bytes(v.0);
         Ok(())
     }
 
-    fn string(&self) -> ResultItem<KdlString<'text>> {
+    fn peek_string(&self) -> ParseResult<Ranged<KdlString<'text>>> {
         let mut end_sequence = None;
         let mut acc = self.sub_accumulator();
 
@@ -144,6 +147,7 @@ pub(crate) trait ParseString<'text>: Buffer<'text> {
         acc.consume_next_char();
 
         while let Some(c) = acc.consume_next_char() {
+            // TODO: handle escape sequences
             match end_sequence {
                 // Dquoted string
                 Some(end_sequence) if end_sequence == c => break,
@@ -157,7 +161,7 @@ pub(crate) trait ParseString<'text>: Buffer<'text> {
             }
         }
 
-        result_item(KdlString::from_str(acc.text()), acc.range())
+        Ok((KdlString::from_str(acc.text()), acc.range()))
     }
 }
 

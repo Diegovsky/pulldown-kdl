@@ -20,7 +20,7 @@ Testman (`testman.py`) is a simple python script that works in various modes. Es
 
 It currently has 4 modes, 3 of which are implemented by the `tester` crate:
   - Check
-  - Compare
+  - Compare (default)
   - Emit
   - Extract (exclusive)
 
