@@ -150,8 +150,8 @@ impl<'text> Parser<'text> {
                 }
 
                 // TODO: parse type cast
-                let (value, _) = self.acc.consume_value()?;
                 let mut sub = self.acc.sub_accumulator();
+                let value = sub.consume_value()?;
                 if let Some(c) = sub.peek_char()
                     && is_equals(c)
                 {
@@ -159,10 +159,10 @@ impl<'text> Parser<'text> {
                     // parse property
                     match value {
                         KdlValue::String(key) => {
-                            let (value, _) = sub.consume_value()?;
+                            let value = sub.consume_value()?;
                             return Ok(item(
                                 Event::NodeEntry(KdlNodeEntry::Property { key, value }),
-                                0..sub.end,
+                                sub.range(),
                             ));
                         }
                         _ => {
@@ -175,7 +175,7 @@ impl<'text> Parser<'text> {
                 // parse argument
                 return Ok(item(
                     Event::NodeEntry(KdlNodeEntry::Argument(value)),
-                    0..sub.end,
+                    sub.range(),
                 ));
             }
         }

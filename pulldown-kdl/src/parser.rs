@@ -8,10 +8,10 @@ pub(crate) trait Parse<'text>: Buffer<'text> + ParseString<'text> {
             .map(|(string, range)| (KdlValue::String(string), range))
     }
 
-    fn consume_value(&mut self) -> ParseResult<Ranged<KdlValue<'text>>> {
-        let item = self.peek_value()?;
-        self.consume_range(&item.1);
-        Ok(item)
+    fn consume_value(&mut self) -> ParseResult<KdlValue<'text>> {
+        let (value, range) = self.peek_value()?;
+        self.consume_range(&range);
+        Ok(value)
     }
 }
 
