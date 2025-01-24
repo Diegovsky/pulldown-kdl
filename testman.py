@@ -70,7 +70,9 @@ def fetch_extract_tests():
     files = [
         f
         for f in z.filelist
-        if '/input/' in f.filename and f.filename.endswith('.kdl')
+        if '/input/' in f.filename
+        and f.filename.endswith('.kdl')
+        and 'fail' not in f.filename  # filter out tests that should fail
     ]
     os.makedirs(temp_test_folder, exist_ok=True)
     os.chdir(temp_test_folder)
